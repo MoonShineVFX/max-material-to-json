@@ -4,11 +4,11 @@ Created on 2020-6-9
 @todo: add ArrayParamater class output support
 @author: noflame.lin
 '''
-import sys
-pyd_path = r'C:\Users\linju\.p2\pool\plugins\org.python.pydev.core_7.2.0.201903251948\pysrc'
-if pyd_path not in sys.path:
-    sys.path.append(pyd_path)
-import pydevd
+# import sys
+# pyd_path = r'C:\Users\linju\.p2\pool\plugins\org.python.pydev.core_7.2.0.201903251948\pysrc'
+# if pyd_path not in sys.path:
+#     sys.path.append(pyd_path)
+# import pydevd
 
 import json
 import pymxs
@@ -60,7 +60,10 @@ def export_table(filename):
         _full_name = obj_full_name(obj)
         val = re.get(_full_name, None)
         if val == None:
-            re[_full_name] = obj.mat.name
+            if obj.mat is None:
+                re[_full_name] = None
+            else:
+                re[_full_name] = obj.mat.name
         else:
             print('WRANGING!!! obj: %s has the same name!' % (obj.name))
 
@@ -80,9 +83,9 @@ def export_abc(filename):
         
         if obj_class == 'Editable_mesh':
             print("convrt %s to edit poly" % (obj.name))
-            recal_normal(obj)
             rt.convertTo(obj, rt.Editable_Poly)
-        
+            recal_normal(obj)
+
         if obj_class in ('Editable_Poly'):
             print("re_caculate %s's normal." % (obj.name))
             rt.addModifier(obj, rt.Edit_Normals())
