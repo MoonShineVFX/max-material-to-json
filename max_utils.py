@@ -91,6 +91,12 @@ def export_abc(filename):
             rt.addModifier(obj, rt.Edit_Normals())
             rt.collapseStack(obj)
         
+        # rename if there are weird char in name
+        if "/" in obj.name:
+            old_name = obj.name
+            obj.name = obj.name.replace('/','-')
+            print('rename obj from %s to %s' %(old_name, obj.name))
+            
     if rt.AlembicExport.CoordinateSystem != "Maya":
         rt.AlembicExport.CoordinateSystem = rt.Name("Maya")
     if rt.AlembicExport.ArchiveType != "Ogawa":
@@ -111,7 +117,7 @@ def export_abc(filename):
     abc_cls = getattr(rt, "Alembic_Export", None)
     if abc_cls is None:
         raise RuntimeError('No ABC Expot Plugin')
-    rt.exportFile(filename, selectedOnly=True, using=abc_cls)
+    rt.exportFile(filename, rt.Name('noPrompt'), selectedOnly=True, using=abc_cls)
     rt.select(org_selected)
     return True
 
