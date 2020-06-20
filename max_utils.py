@@ -226,7 +226,7 @@ def get_max_class(max_obj):
 
 
 class MappingTool(object):
-    cls_ = {'material':None, 'texturemap':None}
+    cls_ = {'material':None, 'texturemap':None, 'shader':None}
     value_type = set()
     _unsupport_material = ['MorpherMaterial']
     _unsupport_texture = []
@@ -267,25 +267,45 @@ class MappingTool(object):
             cls.value_type.add(prop_type)
         return re
 
-    @classmethod
-    def build_material(cls, material_class):
-        if cls.cls_['material'] is None:
-            cls.cls_['material'] = cls._build_cls_list('material')
-        if cls.cls_['material'].get(material_class, None) is None:
-            cls.cls_['material'][material_class] = cls._build_prop_list(material_class)
+        @classmethod
+        def build_material(cls, material_class):
+            return cls.build_complex('material', material_class)
+
+        @classmethod
+        def build_texmap(cls, texmap_class):
+            return cls.build_complex('texturemap', texmap_class)
+        
+        @classmethod
+        def build_shader(cls, shader_class):
+            return cls.build_complex('shader', shader_class)
+
+#     @classmethod
+#     def build_material(cls, material_class):
+#         if cls.cls_['material'] is None:
+#             cls.cls_['material'] = cls._build_cls_list('material')
+#         if cls.cls_['material'].get(material_class, None) is None:
+#             cls.cls_['material'][material_class] = cls._build_prop_list(material_class)
+#     
+#         return cls.cls_['material'][material_class]
+# 
+#     @classmethod
+#     def build_texmap(cls, texmap_class):
+#         if cls.cls_['texturemap'] is None:
+#             cls.cls_['texturemap'] = cls._build_cls_list('texturemap')
+#         if cls.cls_['texturemap'].get(texmap_class, None) is None:
+#             cls.cls_['texturemap'][texmap_class] = cls._build_prop_list(texmap_class)
+#         
+#         return cls.cls_['texturemap'][texmap_class]
     
-        return cls.cls_['material'][material_class]
-
     @classmethod
-    def build_texmap(cls, texmap_class):
-        if cls.cls_['texturemap'] is None:
-            cls.cls_['texturemap'] = cls._build_cls_list('texturemap')
+    def build_complex(cls, sup_cls, the_cls):
+        if cls.cls_[sup_cls] is None:
+            cls.cls_[sup_cls] = cls._build_cls_list(sup_cls)
+        if cls.cls_[sup_cls].get(the_cls, None) is None:
+            cls.cls_[sup_cls][the_cls] = cls._build_prop_list(the_cls)
         
-        if cls.cls_['texturemap'].get(texmap_class, None) is None:
-            cls.cls_['texturemap'][texmap_class] = cls._build_prop_list(texmap_class)
-        
-        return cls.cls_['texturemap'][texmap_class]
-
+        return cls.cls_[sup_cls][the_cls]
+    
 
 class Conv(object):
     
@@ -298,9 +318,36 @@ class Conv(object):
         elif sup_cls == 'textureMap':
             props = MappingTool.build_texmap(obj_cls)
         else:
-            raise RuntimeError("%s should not in complex func" % (cls))
+            raise RuntimeError("%s should not in complex func" % (obj_cls))
+        
+        return cls._collect_properties_value(maxobj, props)
+    
+#         re = dict()
+#         for p_name, p_type in props.items():
+#             value = getattr(maxobj, p_name, None)
+#             if value is None:
+#                 re[p_name] = None
+#             else:
+#                 func = cls.mapping(p_type)
+#                 re[p_name] = func(value)
+#         return re
+
+    @classmethod
+    def _complex_property(cls, obj, property_name):
+#         sup_cls, obj_cls = get_max_class(obj)
+        value_ = getattr(obj, property_name)
+        if property_name in ("shaderByName"):
+            props = MappingTool.build_shader(value_)
+        else:
+            raise RuntimeError("%s should not in complex func" % (value_))
+        
+        return cls._collect_properties_value(obj, props)
+    
+    @classmethod
+    def _collect_properties_value(cls, obj, props):
+        re = dict()
         for p_name, p_type in props.items():
-            value = getattr(maxobj, p_name, None)
+            value = getattr(obj, p_name, None)
             if value is None:
                 re[p_name] = None
             else:
@@ -357,7 +404,7 @@ class Conv(object):
     @classmethod
     def percent_2_dic(cls, float_):
         return cls.float_2_dic(float_)
-    
+
     @classmethod
     def float_2_dic(cls, float_):
         return {u'float':float_}
@@ -392,9 +439,12 @@ class Conv(object):
 
     @classmethod
     def material_2_dic(cls, mat):
-        sup_cls, map_class = get_max_class(mat)
-        re = {u'max_superclass':sup_cls, u'max_class':map_class}
+        sup_cls, mat_class = get_max_class(mat)
+        re = {u'max_superclass':sup_cls, u'max_class':mat_class}
         re.update(cls._complex_maxobject(mat))
+        if mat_class in ("Standardmaterial", "Standard"):
+            shader_re = cls._complex_property(mat, 'shaderByName')
+            re.update(shader_re)
         return {mat.name:re}
 
     @classmethod
