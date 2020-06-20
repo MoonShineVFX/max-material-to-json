@@ -4,12 +4,13 @@ Created on 2020-6-9
 @todo: add ArrayParamater class output support
 @author: noflame.lin
 '''
-import sys
-pyd_path = r'C:\Users\linju\.p2\pool\plugins\org.python.pydev.core_7.2.0.201903251948\pysrc'
-if pyd_path not in sys.path:
-    sys.path.append(pyd_path)
-import pydevd
+# import sys
+# pyd_path = r'C:\Users\linju\.p2\pool\plugins\org.python.pydev.core_7.2.0.201903251948\pysrc'
+# if pyd_path not in sys.path:
+#     sys.path.append(pyd_path)
+# import pydevd
 
+import types
 import json
 import pymxs
 
@@ -267,17 +268,17 @@ class MappingTool(object):
             cls.value_type.add(prop_type)
         return re
 
-        @classmethod
-        def build_material(cls, material_class):
-            return cls.build_complex('material', material_class)
+    @classmethod
+    def build_material(cls, material_class):
+        return cls.build_complex('material', material_class)
 
-        @classmethod
-        def build_texmap(cls, texmap_class):
-            return cls.build_complex('texturemap', texmap_class)
-        
-        @classmethod
-        def build_shader(cls, shader_class):
-            return cls.build_complex('shader', shader_class)
+    @classmethod
+    def build_texmap(cls, texmap_class):
+        return cls.build_complex('texturemap', texmap_class)
+    
+    @classmethod
+    def build_shader(cls, shader_class):
+        return cls.build_complex('shader', shader_class)
 
 #     @classmethod
 #     def build_material(cls, material_class):
@@ -321,20 +322,9 @@ class Conv(object):
             raise RuntimeError("%s should not in complex func" % (obj_cls))
         
         return cls._collect_properties_value(maxobj, props)
-    
-#         re = dict()
-#         for p_name, p_type in props.items():
-#             value = getattr(maxobj, p_name, None)
-#             if value is None:
-#                 re[p_name] = None
-#             else:
-#                 func = cls.mapping(p_type)
-#                 re[p_name] = func(value)
-#         return re
 
     @classmethod
     def _complex_property(cls, obj, property_name):
-#         sup_cls, obj_cls = get_max_class(obj)
         value_ = getattr(obj, property_name)
         if property_name in ("shaderByName"):
             props = MappingTool.build_shader(value_)
@@ -352,7 +342,8 @@ class Conv(object):
                 re[p_name] = None
             else:
                 func = cls.mapping(p_type)
-                re[p_name] = func(value)
+                re_value = func(value)
+                re[p_name] = re_value
         return re
 
     @classmethod
@@ -360,8 +351,8 @@ class Conv(object):
         max_class_name = max_class_name.lower()
         fn_name = max_class_name.replace(' ', '_') + '_2_dic'
         func = getattr(cls, fn_name, cls._not_support)
-        if func == cls._not_support:
-            pydevd.settrace("192.168.1.35", suspend=True)
+#         if func == cls._not_support:
+#             pydevd.settrace("192.168.1.35", suspend=True)
         return func
 
     @classmethod
@@ -439,6 +430,7 @@ class Conv(object):
 
     @classmethod
     def material_2_dic(cls, mat):
+#         pydevd.settrace("192.168.1.35", suspend=True)
         sup_cls, mat_class = get_max_class(mat)
         re = {u'max_superclass':sup_cls, u'max_class':mat_class}
         re.update(cls._complex_maxobject(mat))
@@ -487,4 +479,4 @@ class Conv(object):
     @classmethod
     def percent_array_2_dic(cls, percents):
         return {u'percent array':
-                [cls.percent_2_dic(per for per in percents)]}
+                [cls.percent_2_dic(per) for per in percents]}
