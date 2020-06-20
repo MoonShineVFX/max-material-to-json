@@ -4,11 +4,11 @@ Created on 2020-6-9
 @todo: add ArrayParamater class output support
 @author: noflame.lin
 '''
-# import sys
-# pyd_path = r'C:\Users\linju\.p2\pool\plugins\org.python.pydev.core_7.2.0.201903251948\pysrc'
-# if pyd_path not in sys.path:
-#     sys.path.append(pyd_path)
-# import pydevd
+import sys
+pyd_path = r'C:\Users\linju\.p2\pool\plugins\org.python.pydev.core_7.2.0.201903251948\pysrc'
+if pyd_path not in sys.path:
+    sys.path.append(pyd_path)
+import pydevd
 
 import json
 import pymxs
@@ -313,8 +313,8 @@ class Conv(object):
         max_class_name = max_class_name.lower()
         fn_name = max_class_name.replace(' ', '_') + '_2_dic'
         func = getattr(cls, fn_name, cls._not_support)
-#         if func == cls._not_support:
-#             pydevd.settrace("192.168.1.35", suspend=True)
+        if func == cls._not_support:
+            pydevd.settrace("192.168.1.35", suspend=True)
         return func
 
     @classmethod
@@ -428,8 +428,13 @@ class Conv(object):
     def float_array_2_dic(cls, float_ary):
         return {u'float_array':
                 [cls.float_2_dic(flo) for flo in float_ary]}
-    
+
     @classmethod
     def int_array_2_dic(cls, ints_):
         return {u'int_array':
                 [cls.integer_2_dic(int_) for int_ in ints_]}
+
+    @classmethod
+    def percent_array_2_dic(cls, percents):
+        return {u'percent array':
+                [cls.percent_2_dic(per for per in percents)]}
