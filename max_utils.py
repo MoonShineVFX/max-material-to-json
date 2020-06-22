@@ -1,3 +1,4 @@
+# coding:utf8
 '''
 Created on 2020-6-9
 
@@ -96,8 +97,9 @@ def export_abc(filename):
         if "/" in obj.name:
             old_name = obj.name
             obj.name = obj.name.replace('/','-')
+            obj.name = obj.name.replace('＝','-')
             print('rename obj from %s to %s' %(old_name, obj.name))
-            
+
     if rt.AlembicExport.CoordinateSystem != "Maya":
         rt.AlembicExport.CoordinateSystem = rt.Name("Maya")
     if rt.AlembicExport.ArchiveType != "Ogawa":
@@ -235,18 +237,24 @@ class MappingTool(object):
 
     @classmethod
     def _build_cls_list(cls, cls_name):
-        re = dict()
         cls_list = rt.stringStream("")
         rt.showClass("*:{}".format(cls_name), to=cls_list)
         cls_list = str(cls_list)
         cls_list_sp = cls_list.split('\n')
-        cls_list_sp.pop()
-        cls_li = cls_list_sp.pop(0)
+        
+        re = dict()
+        try:
+            cls_list_sp.pop()
+            cls_li = cls_list_sp.pop(0)
+        except IndexError:
+            print("==== %s Has No Sub Class ====")
+            return dict()
+
         re[cls_li.split(' ')[0].split(':')[1][1:]] = None
         for cls_li in cls_list_sp:
             re[cls_li.split(' ')[0]] = None
         return re
-    
+
     @classmethod
     def _build_prop_list(cls, max_class):
         re = dict()
