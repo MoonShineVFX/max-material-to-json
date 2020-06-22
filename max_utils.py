@@ -255,8 +255,12 @@ class MappingTool(object):
         rt.showClass("{}.*".format(max_class), to=prop_list)
         prop_list = str(prop_list)
         prop_list_sp = prop_list.split('\n')
-        prop_list_sp.pop()
-        prop_list_sp.pop(0)
+        try:
+            prop_list_sp.pop()
+            prop_list_sp.pop(0)
+        except IndexError:
+            print(u"==== %s has No property ====" %(max_class))
+            return []
 
         for prop_li in prop_list_sp:
             prop_name, prop_type = prop_li.split(':')
