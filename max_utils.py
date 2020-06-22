@@ -13,10 +13,22 @@ import sys
 
 import json
 import pymxs
-
 rt = pymxs.runtime
+import MaxPlus as MP
 
 
+
+def maxfilename():
+    return rt.maxfilename
+
+
+def set_parent(widget):
+    MP.AttachQWidgetToMax(widget)
+
+
+def export_folder():
+    return rt.GetDir(rt.Name('Export'))
+    
 def recal_normal(obj):
     rt.addModifier(obj, rt.Edit_Normals())
     rt.collapseStack(obj)
@@ -52,7 +64,7 @@ def export_mat(filename):
     with open(filename, 'w') as f:
         f.write(json.dumps(re))
 
-        return True
+    return True
 
 
 def export_table(filename):
@@ -81,30 +93,23 @@ def export_abc(filename):
         
         if obj_class == 'VRayProxy':
             if obj.display != 4:
-                print("set %s dispaly to 4" % (obj.name))
+#                 print("set %s dispaly to 4" % (obj.name))
                 obj.display = 4
         
         if obj_class == 'Editable_mesh':
-            print("convrt %s to edit poly" % (obj.name))
+#             print("convrt %s to edit poly" % (obj.name))
             rt.convertTo(obj, rt.Editable_Poly)
             recal_normal(obj)
 
         if obj_class in ('Editable_Poly'):
-            print("re_caculate %s's normal." % (obj.name))
+#             print("re_caculate %s's normal." % (obj.name))
             rt.addModifier(obj, rt.Edit_Normals())
             rt.collapseStack(obj)
         
         old_name = obj.name
         obj.name = "%s_%s" % (obj_class, obj.inode.handle)
-        print('rename obj from %s to %s' %(old_name, obj.name))
+#         print('rename obj from %s to %s' %(old_name, obj.name))
 
-        # rename if there are weird char in name
-#         if "/" in obj.name:
-#             old_name = obj.name
-#             obj.name = obj.name.replace('/','-')
-#             obj.name = obj.name.replace('＝','-')
-#             obj.name = obj.name.replace('=','-')
-#             print('rename obj from %s to %s' %(old_name, obj.name))
 
     if rt.AlembicExport.CoordinateSystem != "Maya":
         rt.AlembicExport.CoordinateSystem = rt.Name("Maya")
@@ -307,24 +312,6 @@ class MappingTool(object):
             shader_class = cls._shader_name_class_mapping[shader_class]
             # shader 的名字跟 showclass 取得的不一定會一致，所以會需代換一下
         return cls.build_complex('shader', shader_class)
-
-#     @classmethod
-#     def build_material(cls, material_class):
-#         if cls.cls_['material'] is None:
-#             cls.cls_['material'] = cls._build_cls_list('material')
-#         if cls.cls_['material'].get(material_class, None) is None:
-#             cls.cls_['material'][material_class] = cls._build_prop_list(material_class)
-#     
-#         return cls.cls_['material'][material_class]
-# 
-#     @classmethod
-#     def build_texmap(cls, texmap_class):
-#         if cls.cls_['texturemap'] is None:
-#             cls.cls_['texturemap'] = cls._build_cls_list('texturemap')
-#         if cls.cls_['texturemap'].get(texmap_class, None) is None:
-#             cls.cls_['texturemap'][texmap_class] = cls._build_prop_list(texmap_class)
-#         
-#         return cls.cls_['texturemap'][texmap_class]
     
     @classmethod
     def build_complex(cls, sup_cls, the_cls):

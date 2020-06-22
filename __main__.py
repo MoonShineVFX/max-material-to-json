@@ -11,12 +11,12 @@ if local_path not in sys.path:
     sys.path.append(local_path)
 
 from PySide2 import QtWidgets, QtCore
-import pymxs
-rt = pymxs.runtime
-import MaxPlus as MP
+# import pymxs
+# rt = pymxs.runtime
+# import MaxPlus as MP
 # import qtmax
-import export
-reload(export)
+import coordinator
+reload(coordinator)
 
 
 class Mat2Houdini_ui(QtWidgets.QWidget):
@@ -79,21 +79,22 @@ class Mat2Houdini_ui(QtWidgets.QWidget):
         msgBox.exec_()
 
 
-class Mat2Houdini(object):
+class Mat2Json(object):
     major = 0
     minor = 1
     fix = 0
 
     def __init__(self):
-        if rt.maxfilename:
-            _filename = rt.maxfilename[:-4]
+        file_name = coordinator.dcc_file_name()
+        if file_name:
+            _filename = file_name[:-4]
         else:
             _filename = 'untitled'
-        export_path = rt.GetDir(rt.Name('Export'))
+        export_path = coordinator.dcc_export_folder()
         self.ui = Mat2Houdini_ui(out_folder=export_path, filename=_filename)
         self.ui.do_export.connect(self.export)
-        MP.AttachQWidgetToMax(self.ui)
-#         elf.ui.setParent(qtmax.GetQMaxMainWindow())
+        coordinator.set_parent(self.ui)
+#         elf.ui.set_parent(qtmax.GetQMaxMainWindow())
 
     def export(self, folder, filename):
         if not os.path.isdir(folder):
@@ -109,16 +110,16 @@ class Mat2Houdini(object):
         output_file_table = output_file + '.table'
 
         try:
-            export.export_abc(output_file_abc)
+            coordinator.export_abc(output_file_abc)
         except Exception as e:
-            self.ui.showMessage('export abc Error: ' + repr(e))
-        export.export_mat(output_file_json)
-        export.export_mapping_table(output_file_table)
+            self.ui.showMessage('coordinator abc Error: ' + repr(e))
+        coordinator.export_mat(output_file_json)
+        coordinator.export_mapping_table(output_file_table)
 
     def show(self):
         self.ui.show()
 
 
-m2h = Mat2Houdini()
-m2h.show()
+m2j = Mat2Json()
+m2j.show()
 print('ok')
