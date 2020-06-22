@@ -5,13 +5,12 @@ Created on 2020-6-9
 @todo: add ArrayParamater class output support
 @author: noflame.lin
 '''
-# import sys
+import sys
 # pyd_path = r'C:\Users\linju\.p2\pool\plugins\org.python.pydev.core_7.2.0.201903251948\pysrc'
 # if pyd_path not in sys.path:
 #     sys.path.append(pyd_path)
 # import pydevd
 
-import types
 import json
 import pymxs
 
@@ -47,6 +46,7 @@ def export_mat(filename):
             mats.append(obj.material)
 
     for mat in mats:
+        rt.assignNewName(mat)
         re.update(Conv.material_2_dic(mat))
 
     with open(filename, 'w') as f:
@@ -76,8 +76,9 @@ def export_table(filename):
 
 
 def export_abc(filename):
-    
+
     def pre_process(obj, obj_class):
+        
         if obj_class == 'VRayProxy':
             if obj.display != 4:
                 print("set %s dispaly to 4" % (obj.name))
@@ -93,12 +94,17 @@ def export_abc(filename):
             rt.addModifier(obj, rt.Edit_Normals())
             rt.collapseStack(obj)
         
+        old_name = obj.name
+        obj.name = "%s_%s" % (obj_class, obj.inode.handle)
+        print('rename obj from %s to %s' %(old_name, obj.name))
+
         # rename if there are weird char in name
-        if "/" in obj.name:
-            old_name = obj.name
-            obj.name = obj.name.replace('/','-')
-            obj.name = obj.name.replace('＝','-')
-            print('rename obj from %s to %s' %(old_name, obj.name))
+#         if "/" in obj.name:
+#             old_name = obj.name
+#             obj.name = obj.name.replace('/','-')
+#             obj.name = obj.name.replace('＝','-')
+#             obj.name = obj.name.replace('=','-')
+#             print('rename obj from %s to %s' %(old_name, obj.name))
 
     if rt.AlembicExport.CoordinateSystem != "Maya":
         rt.AlembicExport.CoordinateSystem = rt.Name("Maya")
@@ -234,6 +240,12 @@ class MappingTool(object):
     _unsupport_material = ['MorpherMaterial']
     _unsupport_texture = []
     _unsupport_value = []
+    _shader_name_class_mapping = {"Metal":"MetalShader",
+                                  "Multi-Layer": "Multi_Layer",
+                                  "Oren-Nayar-Blinn": "Oren_Nayar_Blinn",
+                                  "Ox Hair Cheap": "Ox_Hair_Cheap",
+                                  "Ox Hair Expensive": "Ox_Hair_Expensive",
+                                  "Ox Hair Translucent": "Ox_Hair_Translucent"}
 
     @classmethod
     def _build_cls_list(cls, cls_name):
@@ -268,7 +280,7 @@ class MappingTool(object):
             prop_list_sp.pop(0)
         except IndexError:
             print(u"==== %s has No property ====" %(max_class))
-            return []
+            return re
 
         for prop_li in prop_list_sp:
             prop_name, prop_type = prop_li.split(':')
@@ -290,6 +302,10 @@ class MappingTool(object):
     
     @classmethod
     def build_shader(cls, shader_class):
+#         pydevd.settrace("192.168.1.35", suspend=True)
+        if shader_class in cls._shader_name_class_mapping:
+            shader_class = cls._shader_name_class_mapping[shader_class]
+            # shader 的名字跟 showclass 取得的不一定會一致，所以會需代換一下
         return cls.build_complex('shader', shader_class)
 
 #     @classmethod
