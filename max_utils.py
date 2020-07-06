@@ -391,8 +391,8 @@ class Conv(object):
     def rgb_color_2_dic(cls, color):
         return {u'color':
                 {u'r':color.r,
-                 u'g':color.b,
-                 u'b':color.g,
+                 u'g':color.g,
+                 u'b':color.b,
                  u'a':color.a}}
 
     @classmethod
